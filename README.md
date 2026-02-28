@@ -1,6 +1,6 @@
-# Audiobook to Opus Converter
+# abopus — Audiobook to Opus Converter
 
-A Python tool that efficiently converts audiobooks to the [Opus format](https://opus-codec.org/), optimized for voice content. Achieves significant file size reduction while maintaining excellent audio quality, with automatic parallel processing using all CPU cores.
+A tool that efficiently converts audiobooks to the [Opus format](https://opus-codec.org/), optimized for voice content. Achieves significant file size reduction while maintaining excellent audio quality, with automatic parallel processing using all CPU cores.
 
 ## Features
 
@@ -15,16 +15,48 @@ A Python tool that efficiently converts audiobooks to the [Opus format](https://
 
 ## Quick Start
 
+### Option 1: pipx / uvx (recommended)
+
+No clone needed — just install and run:
+
+```bash
+# Install with pipx (persistent install)
+pipx install abopus
+
+# Or run directly with uvx (no install needed)
+uvx abopus -s ~/Audiobooks -o ~/Audiobooks_Opus
+```
+
+> **Note:** FFmpeg must be installed on your system (`sudo apt install ffmpeg` / `brew install ffmpeg`).
+
+### Option 2: Docker
+
+Zero dependencies — only Docker required:
+
+```bash
+docker run --rm \
+  -v ./audiobooks:/input \
+  -v ./output:/output \
+  ghcr.io/kadykov/abopus
+
+# With custom options
+docker run --rm \
+  -v ./audiobooks:/input \
+  -v ./output:/output \
+  ghcr.io/kadykov/abopus -b 32k --stereo keep
+```
+
+### Option 3: Run directly
+
 ```bash
 # Install dependencies
 sudo apt install ffmpeg python3 imagemagick  # Ubuntu/Debian
 # or: brew install ffmpeg python3 imagemagick  # macOS
 
-# Convert audiobooks (uses all CPU cores, 24k bitrate by default)
+# Clone and run
+git clone https://github.com/kadykov/abopus.git
+cd abopus
 python3 convert_audiobooks.py
-
-# Use lower bitrate for smaller files
-python3 convert_audiobooks.py -b 20k
 ```
 
 Input files: `./original/` → Output files: `./opus/`
@@ -35,25 +67,25 @@ Input files: `./original/` → Output files: `./opus/`
 
 ```bash
 # Convert with defaults (all CPU cores, 24k bitrate, downmix stereo to mono)
-python3 convert_audiobooks.py
+abopus
 
 # Custom directories
-python3 convert_audiobooks.py -s ~/Audiobooks -o ~/Audiobooks_Opus
+abopus -s ~/Audiobooks -o ~/Audiobooks_Opus
 
 # Specific number of workers
-python3 convert_audiobooks.py -w 4
+abopus -w 4
 
 # High quality
-python3 convert_audiobooks.py -b 32k
+abopus -b 32k
 
 # Keep stereo files as stereo
-python3 convert_audiobooks.py --stereo keep
+abopus --stereo keep
 
 # Increase bitrate for stereo files (32k)
-python3 convert_audiobooks.py --stereo increase-bitrate
+abopus --stereo increase-bitrate
 
 # Verbose output
-python3 convert_audiobooks.py -v
+abopus -v
 ```
 
 ### Options
@@ -147,7 +179,7 @@ The script provides three strategies for handling multi-channel audio:
 Converts stereo to mono, preserving more bitrate for voice clarity. Best for audiobooks where narration is the primary focus.
 
 ```bash
-python3 convert_audiobooks.py --stereo downmix
+abopus --stereo downmix
 ```
 
 ### keep
@@ -155,7 +187,7 @@ python3 convert_audiobooks.py --stereo downmix
 Keeps stereo files as-is. At lower bitrates (e.g., 24k or below), Opus may partially downmix stereo anyway.
 
 ```bash
-python3 convert_audiobooks.py --stereo keep
+abopus --stereo keep
 ```
 
 ### increase-bitrate
@@ -169,7 +201,7 @@ Automatically increases bitrate for stereo files by 60% to preserve stereo imagi
 - 40k → 64k
 
 ```bash
-python3 convert_audiobooks.py --stereo increase-bitrate
+abopus --stereo increase-bitrate
 ```
 
 ## Technical Details
@@ -201,17 +233,14 @@ python3 convert_audiobooks.py --stereo increase-bitrate
 
 ```bash
 # Check dependencies
-python3 --version    # Should be 3.7+
+abopus --help        # Should print help
 ffmpeg -version      # Should be installed
 
 # Verify Opus support
 ffmpeg -codecs | grep opus
 
-# Make script executable
-chmod +x convert_audiobooks.py
-
 # Run with verbose output
-python3 convert_audiobooks.py -v
+abopus -v
 ```
 
 ## How It Works
@@ -229,10 +258,16 @@ python3 convert_audiobooks.py -v
 ## Project Structure
 
 ```plain
-audiobook-opus-converter/
-├── convert_audiobooks.py    # Main script
+abopus/
+├── src/abopus/              # Python package
+│   ├── __init__.py          # Version
+│   ├── __main__.py          # python -m abopus entry point
+│   └── converter.py         # Conversion logic
+├── convert_audiobooks.py    # Compatibility shim
+├── pyproject.toml           # Package metadata
+├── Dockerfile               # Docker image
 ├── README.md                # Documentation
-├── original/                # Place source files here
+├── original/                # Place source files here (default)
 │   └── Book Name/
 │       └── chapter01.mp3
 └── opus/                    # Converted files (auto-created)
@@ -240,9 +275,44 @@ audiobook-opus-converter/
         └── chapter01.opus
 ```
 
+## Installation
+
+### pipx / uvx (recommended)
+
+```bash
+# Persistent install
+pipx install abopus
+
+# Or run without installing
+uvx abopus --help
+```
+
+### Docker
+
+```bash
+docker run --rm \
+  -v ./audiobooks:/input \
+  -v ./output:/output \
+  ghcr.io/kadykov/abopus
+```
+
+### pip
+
+```bash
+pip install abopus
+```
+
+### From source
+
+```bash
+git clone https://github.com/kadykov/abopus.git
+cd abopus
+pip install -e .
+```
+
 ## Requirements
 
-**Required:**
+**Required (except Docker — everything is included):**
 
 - Python 3.7 or later
 - FFmpeg with libopus support
@@ -253,14 +323,14 @@ audiobook-opus-converter/
 
 ```bash
 # Ubuntu/Debian
-sudo apt install ffmpeg python3 imagemagick
+sudo apt install ffmpeg imagemagick
 
 # Fedora
-sudo dnf install ffmpeg python3 ImageMagick
+sudo dnf install ffmpeg ImageMagick
 
 # Arch Linux
-sudo pacman -S ffmpeg python3 imagemagick
+sudo pacman -S ffmpeg imagemagick
 
 # macOS
-brew install ffmpeg python3 imagemagick
+brew install ffmpeg imagemagick
 ```
