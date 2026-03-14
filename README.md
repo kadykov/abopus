@@ -1,5 +1,10 @@
 # abopus — Audiobook to Opus Converter
 
+[![PyPI Version](https://img.shields.io/pypi/v/abopus)](https://pypi.org/project/abopus/)
+[![PyPI Python Version](https://img.shields.io/pypi/pyversions/abopus)](https://pypi.org/project/abopus/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/abopus)](https://pypi.org/project/abopus/)
+[![License](https://img.shields.io/github/license/kadykov/abopus)](https://github.com/kadykov/abopus/blob/main/LICENSE)
+
 A tool that efficiently converts audiobooks to the [Opus format](https://opus-codec.org/), optimized for voice content. Achieves significant file size reduction while maintaining excellent audio quality, with automatic parallel processing using all CPU cores.
 
 ## Features
